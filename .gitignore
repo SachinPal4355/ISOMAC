@@ -1,0 +1,34 @@
+# Environment variables - NEVER commit these
+.env
+.env.*
+!.env.example
+*.env
+backend/.env
+frontend-react/.env
+frontend-react/.env.production
+
+# Dependencies
+node_modules/
+*/node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Backups
+backend/backups/
+*.bak
+
+# Kiro specs (if you want to exclude them)
+.kiro/

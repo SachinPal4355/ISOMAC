@@ -1,0 +1,73 @@
+# -----------------------------
+# Node.js / Backend
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+logs/
+debug.log
+error.log
+
+# Build output
+dist/
+build/
+tmp/
+temp/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# MongoDB / Database files
+*.pid
+*.seed
+*.lock
+dump/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# React / Frontend
+# -----------------------------
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.cache/
+frontend/.parcel-cache/
+
+# React editor settings
+.vscode/
+.idea/
+*.swp
+
+# -----------------------------
+# Misc / Tools
+# -----------------------------
+*.zip
+*.tar.gz
+*.tgz
+*.bak
+*.tmp
+*.orig
+*.log
+*.env
+
+# -----------------------------
+# Optional: VSCode, IntelliJ, etc.
+# -----------------------------
+.vscode/
+.idea/
+.history/

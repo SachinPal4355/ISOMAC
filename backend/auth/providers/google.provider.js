@@ -41,19 +41,25 @@ async function findOrCreateUser(profile) {
     let changed = false;
     if (user.email !== email || user.fullName !== fullName) { user.email = email; user.fullName = fullName; changed = true; }
     if (!user.tenantId) { const tid = await resolveTenantFromEmail(email); if (tid) { user.tenantId = tid; changed = true; } }
+    if (user.role !== 'editor') { user.role = 'editor'; changed = true; }
+    if (!user.provider || user.provider !== 'google') { user.provider = 'google'; changed = true; }
+    if (!user.isGoogleUser) { user.isGoogleUser = true; changed = true; }
     if (changed) await user.save();
     return user;
   }
 
   user = await User.findOne({ email: email, isDeleted: { $ne: true } });
   if (user) {
-    user.googleId = googleId; user.isGoogleUser = true; user.provider = 'google';
+    user.googleId = googleId;
+    user.isGoogleUser = true;
+    user.provider = 'google';
+    if (user.role !== 'editor') user.role = 'editor';
     if (!user.tenantId) { const tid = await resolveTenantFromEmail(email); if (tid) user.tenantId = tid; }
     await user.save();
     return user;
   }
 
-  const defaultRole = normaliseRole(process.env.GOOGLE_DEFAULT_ROLE || 'editor');
+  const defaultRole = 'editor';
   const tenantId    = await resolveTenantFromEmail(email);
   let baseUsername  = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() || 'user';
   let username = baseUsername; let suffix = 1;

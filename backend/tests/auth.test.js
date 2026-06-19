@@ -78,6 +78,30 @@ describe('POST /login', () => {
     expect(res.status).toBe(400);
   });
 
+  test('auto-updates Google users to editor role', async () => {
+    const user = await User.create({
+      username: 'testuser_google',
+      email: 'googleuser@example.com',
+      password: await bcrypt.hash('Password1', 10),
+      role: 'viewer',
+      provider: 'local',
+      isGoogleUser: false,
+    });
+
+    const googleProvider = require('../auth/providers/google.provider');
+    const profile = {
+      id: 'google-test-id',
+      displayName: 'Google Test',
+      emails: [{ value: 'googleuser@example.com' }],
+    };
+
+    const updatedUser = await googleProvider.findOrCreateUser(profile);
+    expect(updatedUser.role).toBe('editor');
+    expect(updatedUser.isGoogleUser).toBe(true);
+    expect(updatedUser.provider).toBe('google');
+    expect(updatedUser.googleId).toBe('google-test-id');
+  });
+
   // ── Account lockout ─────────────────────────────────────────────────────────
   test('locks account after 5 failed attempts', async () => {
     // Reset counter first

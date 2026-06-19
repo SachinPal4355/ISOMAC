@@ -1,0 +1,52 @@
+# Node modules
+node_modules/
+*/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+frontend-react/dist/
+backend/backups/
+
+# Test files
+backend/tests/
+*.test.js
+coverage/
+
+# Documentation
+*.md
+!README_HF.md
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Kiro
+.kiro/
+
+# Inventory submodule
+inventory/

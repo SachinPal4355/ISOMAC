@@ -57,6 +57,37 @@ describe('Asset CRUD', () => {
     createdAssetId = res.body.asset._id;
   });
 
+  test('POST /assets — creates asset with custom database category', async () => {
+    // 1. Create a custom category via API first
+    const catRes = await request(app)
+      .post('/asset-categories')
+      .set('Cookie', adminCookie)
+      .send({
+        name: 'Server',
+        type: 'asset',
+      });
+    expect(catRes.status).toBe(201);
+
+    // 2. Create an asset under this custom category
+    const res = await request(app)
+      .post('/assets')
+      .set('Cookie', adminCookie)
+      .send({
+        assetTag: 'TEST-SERVER-001',
+        name:     'Enterprise DB Server',
+        category: 'Server',
+        status:   'Available',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.asset.category).toBe('Server');
+    expect(res.body.asset.type).toBe('asset');
+
+    // Clean up created test server asset and category
+    await Asset.findByIdAndDelete(res.body.asset._id);
+    await mongoose.model('AssetCategory').findByIdAndDelete(catRes.body.data._id);
+  });
+
   test('GET /assets — returns created asset', async () => {
     const res = await request(app)
       .get('/assets')

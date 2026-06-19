@@ -68,19 +68,20 @@ const cspDirectives = {
   defaultSrc:  ["'self'"],
   scriptSrc:   ["'self'"],
   styleSrc:    ["'self'", "'unsafe-inline'"],   // Tailwind needs this
-  imgSrc:      ["'self'", 'data:', 'blob:'],    // blob: for PDF previews
-  connectSrc:  ["'self'"],                       // API calls to own domain only
+  imgSrc:      ["'self'", 'data:', 'blob:', 'https://lh3.googleusercontent.com'], // Google profile photos
+  connectSrc:  ["'self'", 'https://accounts.google.com'], // Google OAuth
   fontSrc:     ["'self'"],
   objectSrc:   ["'none'"],                       // block Flash / plugins
-  frameSrc:    ["'self'"],                       // allow same-origin iframes (PDF viewer)
-  frameAncestors: ["'none'"],                    // prevent clickjacking
+  frameSrc:    ["'self'", 'https://accounts.google.com'], // Google OAuth consent screen
+  frameAncestors: ["'self'", "https://*.hf.space", "https://huggingface.co", "https://*.huggingface.co"], // allow Hugging Face Spaces embedding
   baseUri:     ["'self'"],
-  formAction:  ["'self'"],
+  formAction:  ["'self'", 'https://accounts.google.com'], // Google OAuth form post
 };
 
 app.use(helmet({
   contentSecurityPolicy: { directives: cspDirectives },
   crossOriginEmbedderPolicy: false,  // needed for PDF blob rendering
+  frameguard: false, // disabled so frameAncestors controls framing (needed for Hugging Face Spaces iframe)
   hsts: NODE_ENV === 'production'
     ? { maxAge: 31536000, includeSubDomains: true, preload: true }
     : false,
@@ -124,6 +125,20 @@ app.use((req, _res, next) => {
   next();
 });
 
+// --- Session --- MUST come before passport ---
+app.use(session({
+  secret: SESSION_SECRET_SAFE,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: MONGO_URI, ttl: 8 * 60 * 60 }),
+  cookie: {
+    secure:   NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge:   8 * 60 * 60 * 1000,
+    httpOnly: true,
+  },
+}));
+
 // --- Passport (Google OAuth) ---
 // Strategy is only registered when GOOGLE_CLIENT_ID is configured.
 // passport.session() is NOT used — we use our own session + JWT system.
@@ -150,20 +165,6 @@ if (samlProvider.enabled) {
 } else {
   console.log('[passport] ℹ️  SAML SSO not configured (SAML_ENABLED not set)');
 }
-
-// --- Session ---
-app.use(session({
-  secret: SESSION_SECRET_SAFE,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: MONGO_URI, ttl: 8 * 60 * 60 }),
-  cookie: {
-    secure:   NODE_ENV === 'production',
-    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge:   8 * 60 * 60 * 1000,
-    httpOnly: true,
-  },
-}));
 
 // --- Rate limiting ---
 // Global: generous limit for all routes
@@ -422,6 +423,10 @@ app.get('/health', async (_req, res) => {
   });
 });
 
+// --- Serve React SPA static files ---
+const FRONTEND_DIST = path.join(__dirname, '../frontend-react/dist');
+app.use(express.static(FRONTEND_DIST, { redirect: false }));
+
 // --- Routes ---
 app.use('/', require('./routes/auth.routes'));
 app.use('/', require('./routes/mfa.routes'));
@@ -457,9 +462,7 @@ app.use('/asset-categories', require('./routes/assetCategory.routes'));
 require('./models/EmployeeAssetHistory'); // ensure model is registered
 app.use('/', require('./routes/files.routes'));
 
-// --- Serve React SPA ---
-const FRONTEND_DIST = path.join(__dirname, '../frontend-react/dist');
-app.use(express.static(FRONTEND_DIST));
+// --- SPA fallback ---
 app.get('/{*splat}', (_req, res) => {
   res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
 });
@@ -485,3 +488,5 @@ function shutdown(signal) {
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+module.exports = app;

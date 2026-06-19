@@ -6,11 +6,11 @@ import IsomacLogo from '../components/IsomacLogo'
 
 const GOOGLE_LOGIN_URL = import.meta.env.DEV
   ? 'http://localhost:5000/auth/google'
-  : `${import.meta.env.VITE_API_URL}/auth/google`
+  : '/auth/google'
 
 const SAML_LOGIN_URL = import.meta.env.DEV
   ? 'http://localhost:5000/auth/saml/login'
-  : `${import.meta.env.VITE_API_URL}/auth/saml/login`
+  : '/auth/saml/login'
 
 export default function Login() {
   const [username, setUsername] = useState('')

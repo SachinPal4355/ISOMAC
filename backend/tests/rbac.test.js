@@ -21,6 +21,7 @@ const USERS = {
   admin:  { username: 'rbac_admin',  password: 'Admin1234',  role: 'admin'  },
   editor: { username: 'rbac_editor', password: 'Editor1234', role: 'editor' },
   viewer: { username: 'rbac_viewer', password: 'Viewer1234', role: 'viewer' },
+  super_admin: { username: 'rbac_super', password: 'Super1234', role: 'super_admin' },
 };
 
 const cookies = {};
@@ -44,6 +45,7 @@ beforeAll(async () => {
   cookies.admin  = await loginAs('admin');
   cookies.editor = await loginAs('editor');
   cookies.viewer = await loginAs('viewer');
+  cookies.super_admin = await loginAs('super_admin');
 
   // Create a test asset for update/delete tests
   await request(app).post('/assets').set('Cookie', cookies.admin)
@@ -168,5 +170,27 @@ describe('JWT auth path — RBAC enforcement', () => {
     const res = await request(app).get('/assets')
       .set('Authorization', 'Bearer invalid.token.here');
     expect(res.status).toBe(401);
+  });
+});
+
+// ── super_admin path — global visibility ─────────────────────────────────────
+describe('super_admin path — visibility of global assets with tenantId: null', () => {
+  test('super_admin can create and list global assets', async () => {
+    const createRes = await request(app)
+      .post('/assets')
+      .set('Cookie', cookies.super_admin)
+      .send({ assetTag: 'RBAC-SUPER-001', name: 'Super Global Laptop', category: 'Laptop' });
+
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.asset.tenantId).toBeNull();
+
+    const getRes = await request(app)
+      .get('/assets')
+      .set('Cookie', cookies.super_admin);
+
+    expect(getRes.status).toBe(200);
+    const assets = getRes.body.data || getRes.body;
+    const found = (Array.isArray(assets) ? assets : []).find(a => a.assetTag === 'RBAC-SUPER-001');
+    expect(found).toBeDefined();
   });
 });

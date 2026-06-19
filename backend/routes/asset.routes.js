@@ -11,8 +11,26 @@ const router = express.Router();
 const ASSET_CATEGORIES     = ['Laptop', 'MacBook', 'Mac Mini', 'iMac', 'Other'];
 const ACCESSORY_CATEGORIES = ['Mouse', 'Keyboard', 'Monitor', 'Headset', 'Docking Station'];
 
-function typeFromCategory(category) {
+async function typeFromCategory(category, tenantId = null) {
   if (!category) return null;
+
+  // Try querying database AssetCategory
+  const AssetCategory = require('../models/AssetCategory');
+  try {
+    const dbCategory = await AssetCategory.findOne({
+      name: { $regex: `^${category.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
+      isActive: true,
+      $or: [{ tenantId: null }, { tenantId }]
+    }).lean();
+
+    if (dbCategory) {
+      return dbCategory.type;
+    }
+  } catch (err) {
+    console.error('Error fetching category type from DB:', err.message);
+  }
+
+  // Fallback to defaults
   if (ASSET_CATEGORIES.includes(category))     return 'asset';
   if (ACCESSORY_CATEGORIES.includes(category)) return 'accessory';
   return null;
@@ -201,8 +219,8 @@ router.post('/', requireAuth, requireRole('admin', 'editor'), enforceTenantScope
     const { assetTag, name, category } = req.body;
     if (!assetTag || !name || !category) return res.status(400).json({ message: 'assetTag, name, category required' });
 
-    const derivedType = typeFromCategory(category);
-    if (!derivedType) return res.status(400).json({ message: `Unknown category: "${category}". Must be one of: ${[...ASSET_CATEGORIES, ...ACCESSORY_CATEGORIES].join(', ')}` });
+    const derivedType = await typeFromCategory(category, req.tenantId);
+    if (!derivedType) return res.status(400).json({ message: `Unknown category: "${category}".` });
 
     const routeType = getRouteType(req);
     if (derivedType !== routeType) {
@@ -247,7 +265,7 @@ router.put('/:id', requireAuth, requireRole('admin', 'editor'), enforceTenantSco
     if (!existing) return res.status(404).json({ message: 'Not found' });
 
     const category    = req.body.category || existing.category;
-    const derivedType = typeFromCategory(category);
+    const derivedType = await typeFromCategory(category, req.tenantId);
     if (!derivedType) return res.status(400).json({ message: `Unknown category: "${category}"` });
 
     if (derivedType !== existing.type) {
@@ -339,7 +357,7 @@ router.post('/migrate-from-inventory', requireAuth, requireRole('admin'), enforc
         const itemNameLower = (item.itemName || '').toLowerCase();
         const category      = Object.entries(categoryMap).find(([k]) => itemNameLower.includes(k))?.[1] || 'Other';
         const status        = statusMap[(item.status || '').toLowerCase()] || 'Available';
-        const itemType      = typeFromCategory(category) || 'asset';
+        const itemType      = (await typeFromCategory(category, req.tenantId)) || 'asset';
         const tagBase       = `MIG-${serial || item._id.toString().slice(-6).toUpperCase()}`;
 
         if (serial && existingBySerial.has(serial)) {

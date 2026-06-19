@@ -248,14 +248,11 @@ function enforceTenantScope(req, res, next) {
   if (role === 'super_admin') {
     const scopedTenant = req.query.tenantId || null;
     req.tenantId       = scopedTenant;
-    // Super admin sees tenant data by default, excludes null-tenant personal data
-    // unless ?includePersonal=true is passed
+    // Super admin sees all data by default, optionally filtered by tenantId
     if (scopedTenant) {
       req.tenantFilter = { tenantId: scopedTenant };
-    } else if (req.query.includePersonal === 'true') {
-      req.tenantFilter = {}; // all data
     } else {
-      req.tenantFilter = { tenantId: { $ne: null } }; // only tenant-scoped data
+      req.tenantFilter = {}; // all data
     }
     return next();
   }

@@ -919,8 +919,6 @@ router.post('/auth/ldap/login', authLimiter, async (req, res) => {
   }
 });
 
-module.exports = router;
-
 // ─── Google OAuth routes ──────────────────────────────────────────────────────
 // These routes are only active when GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET
 // are set in the environment. If not configured, both return 503.
@@ -1045,3 +1043,4 @@ router.get('/auth/google/token', (req, res) => {
 });
 
 module.exports = router;
+

@@ -24,6 +24,13 @@ const passport = require('passport');
 
 const app = express();
 
+// ── Trust proxy ───────────────────────────────────────────────────────────────
+// Required when running behind a reverse proxy (Hugging Face Spaces, Azure App
+// Service, nginx, etc.).  Without this, express-rate-limit throws
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and the health-check fails.
+// '1' = trust the first hop (the HF / Azure load balancer).
+app.set('trust proxy', 1);
+
 // ── Sentry must be initialised before any other middleware ────────────────────
 initSentry(app);
 

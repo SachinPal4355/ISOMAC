@@ -2,39 +2,57 @@
 # ─────────────────────────────────────────────────────────────────
 # ISOMAC — Hugging Face Spaces entrypoint
 #
-# Differences from the Azure entrypoint:
-#   • Port 7860  (HF Spaces requirement)
-#   • Replica-set check is DISABLED — MongoDB Atlas handles this
-#     transparently; standalone rejection would break HF demos.
-#   • Secrets come from HF Space Settings → Repository Secrets
+# Starts a local MongoDB 7 instance, waits for it to be ready,
+# then launches the Node.js backend.
+#
+# Secrets must be set in HF Space → Settings → Variables and secrets:
+#   SESSION_SECRET, JWT_SECRET, SUPER_ADMIN_PASSWORD
 # ─────────────────────────────────────────────────────────────────
 set -e
 
-# ── Required environment variable guard ──────────────────────────
-if [ -z "$MONGO_URI" ]; then
-  echo "❌  MONGO_URI is not set."
-  echo "    Go to your HF Space → Settings → Repository Secrets and add MONGO_URI."
-  echo "    Use a free MongoDB Atlas cluster: https://www.mongodb.com/atlas"
-  exit 1
-fi
+# ── Default MONGO_URI to local instance if not set ───────────────
+export MONGO_URI="${MONGO_URI:-mongodb://127.0.0.1:27017/isomac_db}"
+export HF_SPACE=true
 
+# ── Required secrets guard ───────────────────────────────────────
 if [ -z "$SESSION_SECRET" ]; then
   echo "❌  SESSION_SECRET is not set."
-  echo "    Add it in HF Space → Settings → Repository Secrets."
+  echo "    Add it in HF Space → Settings → Variables and secrets."
   exit 1
 fi
 
 if [ -z "$JWT_SECRET" ]; then
   echo "❌  JWT_SECRET is not set."
-  echo "    Add it in HF Space → Settings → Repository Secrets."
+  echo "    Add it in HF Space → Settings → Variables and secrets."
   exit 1
 fi
 
+# ── Start local MongoDB (only if MONGO_URI is local) ─────────────
+case "$MONGO_URI" in
+  mongodb://127.0.0.1:*|mongodb://localhost:*)
+    echo "🍃  Starting local MongoDB..."
+    mkdir -p /data/db
+    mongod --dbpath /data/db \
+           --bind_ip 127.0.0.1 \
+           --port 27017 \
+           --logpath /app/logs/mongod.log \
+           --fork
+    echo "⏳  Waiting for MongoDB to be ready..."
+    for i in $(seq 1 30); do
+      if mongosh --quiet --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; then
+        echo "✅  MongoDB is ready."
+        break
+      fi
+      echo "   attempt $i/30..."
+      sleep 1
+    done
+    ;;
+  *)
+    echo "🌐  Using external MongoDB: ${MONGO_URI%%@*}@..."
+    ;;
+esac
+
 echo "✅  Environment check passed."
 echo "🚀  Starting ISOMAC on port ${PORT:-7860} ..."
-
-# Signal to server.js that we are running on Hugging Face Spaces.
-# This makes the replica-set check non-fatal (Atlas handles it transparently).
-export HF_SPACE=true
 
 exec node /app/backend/server.js

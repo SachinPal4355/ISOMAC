@@ -361,19 +361,33 @@ const connectWithRetry = (attempt = 1, maxAttempts = 5) => {
     // ── Replica set check (production only) ──────────────────────────────────
     // Transactions require a replica set. Standalone MongoDB does not support them.
     // This check prevents silent data integrity failures on bulk imports.
+    // On Hugging Face Spaces (HF_SPACE=true), the check is logged but non-fatal
+    // because Atlas handles replica sets transparently and the isMaster response
+    // may not carry setName on shared-tier clusters.
     if (NODE_ENV === 'production') {
+      const isHuggingFace = process.env.HF_SPACE === 'true';
       try {
         const info = await mongoose.connection.db.admin().command({ isMaster: 1 });
         if (!info.setName && info.msg !== 'isdbgrid') {
-          console.error('❌ MongoDB replica set required in production.');
-          console.error('   Standalone instances do not support transactions.');
-          console.error('   Use MongoDB Atlas (M10+) or configure a 3-node replica set.');
+          if (isHuggingFace) {
+            console.warn('⚠️  [db] Replica set not detected — running on Hugging Face Spaces, continuing anyway.');
+            console.warn('   Ensure your MONGO_URI points to a MongoDB Atlas cluster for transaction support.');
+          } else {
+            console.error('❌ MongoDB replica set required in production.');
+            console.error('   Standalone instances do not support transactions.');
+            console.error('   Use MongoDB Atlas (M10+) or configure a 3-node replica set.');
+            process.exit(1);
+          }
+        } else {
+          console.log(`[db] ✅ Replica set detected: "${info.setName}"`);
+        }
+      } catch (rsErr) {
+        if (isHuggingFace) {
+          console.warn('⚠️  [db] Replica set check failed (HF Spaces — non-fatal):', rsErr.message);
+        } else {
+          console.error('❌ Replica set check failed:', rsErr.message);
           process.exit(1);
         }
-        console.log(`[db] ✅ Replica set detected: "${info.setName}"`);
-      } catch (rsErr) {
-        console.error('❌ Replica set check failed:', rsErr.message);
-        process.exit(1);
       }
     }
 

@@ -7,19 +7,19 @@ yarn-error.log
 # Git
 .git/
 .gitignore
+.gitattributes
 
-# IDE
+# IDE / editor
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Environment files
+# Environment files (secrets must come from Azure App Settings / Key Vault)
 .env
 .env.*
-!.env.example
 
-# Build artifacts
+# Build artefacts (built inside Docker)
 frontend-react/dist/
 backend/backups/
 
@@ -30,7 +30,6 @@ coverage/
 
 # Documentation
 *.md
-!README_HF.md
 
 # Logs
 *.log
@@ -40,13 +39,13 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Temporary files
+# Temp files
 *.tmp
 *.bak
 *~
 
-# Kiro
+# Tool-specific
 .kiro/
 
-# Inventory submodule
+# Inventory submodule (not part of the Docker image)
 inventory/

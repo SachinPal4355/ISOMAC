@@ -1,0 +1,60 @@
+name: Deploy ISOMAC to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - main          # triggers on every push to main
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+# ─────────────────────────────────────────────────────────────────
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#
+#   HF_TOKEN        — Hugging Face write token
+#                     (hf.co → Settings → Access Tokens → New token → Write)
+#   HF_USERNAME     — your Hugging Face username  (e.g. sachin-pal)
+#   HF_SPACE_NAME   — your Space name             (e.g. isomac)
+#
+# The full Space URL will be:
+#   https://huggingface.co/spaces/<HF_USERNAME>/<HF_SPACE_NAME>
+# ─────────────────────────────────────────────────────────────────
+
+jobs:
+  push-to-huggingface:
+    name: Push to Hugging Face Space
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout code ────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # full history needed for git push
+
+      # ── 2. Configure Git identity ────────────────────────────────
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name  "github-actions[bot]"
+
+      # ── 3. Push to Hugging Face Space ────────────────────────────
+      # HF Spaces builds automatically when the main branch is updated.
+      # Dockerfile at repo root is already the HF-specific build.
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN:      ${{ secrets.HF_TOKEN }}
+          HF_USERNAME:   ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          git remote add huggingface \
+            "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
+          git push huggingface HEAD:main --force
+
+      # ── 4. Print Space URL ────────────────────────────────────────
+      - name: Print Space URL
+        env:
+          HF_USERNAME:   ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          echo "✅ Pushed to Hugging Face Space successfully!"
+          echo "🤗 Space URL: https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
+          echo "🚀 App URL:   https://${HF_USERNAME}-${HF_SPACE_NAME}.hf.space"

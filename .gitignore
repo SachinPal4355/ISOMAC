@@ -1,4 +1,8 @@
-# Environment variables - NEVER commit these
+# ─────────────────────────────────────────────────────────────────
+# ISOMAC — .gitignore (Azure deployment)
+# ─────────────────────────────────────────────────────────────────
+
+# ── Secrets & Environment Variables (NEVER commit) ───────────────
 .env
 .env.*
 !.env.example
@@ -7,28 +11,51 @@ backend/.env
 frontend-react/.env
 frontend-react/.env.production
 
-# Dependencies
+# ── Dependencies (reinstalled via npm ci) ────────────────────────
 node_modules/
 */node_modules/
-package-lock.json
 
-# Build outputs
+# ── Build outputs (built inside Docker / CI) ─────────────────────
 dist/
 build/
-*.log
+frontend-react/dist/
 
-# OS files
+# ── Logs ──────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-error.log*
+
+# ── OS files ──────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE
+# ── IDE / Editor ──────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
-# Backups
+# ── Backups ───────────────────────────────────────────────────────
 backend/backups/
 *.bak
 
-# Kiro specs (if you want to exclude them)
+# ── Test coverage ─────────────────────────────────────────────────
+coverage/
+
+# ── Kiro ──────────────────────────────────────────────────────────
 .kiro/
+
+# ── Hugging Face specific (not needed for Azure) ──────────────────
+README_HF.md
+
+# ── Vercel config (using Azure, not Vercel) ───────────────────────
+frontend-react/vercel.json
+
+# ── Inventory submodule (separate repo) ───────────────────────────
+inventory/
+
+# ── Temp files ────────────────────────────────────────────────────
+*.tmp

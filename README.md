@@ -6,7 +6,7 @@
 
 **A comprehensive full-stack MERN application for managing IT assets, employees, and inventory**
 
-[🚀 Try Demo](#demo-credentials) | [📖 Documentation](https://github.com/SachinPal4355/ISOMAC) | [💻 GitHub](https://github.com/SachinPal4355/ISOMAC)
+[🚀 Try Demo](#https://sachinpal4355-isomac.hf.space/) | [💻 GitHub](https://github.com/SachinPal4355/ISOMAC)
 
 
 ---

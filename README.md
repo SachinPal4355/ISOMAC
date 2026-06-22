@@ -1,17 +1,4 @@
----
-title: ISOMAC - IT Asset Management
-emoji: 📦
-colorFrom: green
-colorTo: blue
-sdk: docker
-pinned: false
-license: mit
-app_port: 7860
----
-
 # ISOMAC - IT Asset Management System
-
-<div align="center">
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/SachinPal4355/ISOMAC)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -21,7 +8,6 @@ app_port: 7860
 
 [🚀 Try Demo](#demo-credentials) | [📖 Documentation](https://github.com/SachinPal4355/ISOMAC) | [💻 GitHub](https://github.com/SachinPal4355/ISOMAC)
 
-</div>
 
 ---
 
@@ -62,11 +48,6 @@ app_port: 7860
 ---
 
 ## 🔐 Demo Credentials
-
-```
-Username: sachinforoffice23
-Password: demo123
-```
 
 ⚠️ **Important Notes:**
 - This is a **Demo Mode** deployment
@@ -126,31 +107,10 @@ Employees can view their assigned assets and submit IT requests.
 
 ### Run Locally
 
-```bash
-# Clone the repository
-git clone https://github.com/SachinPal4355/ISOMAC.git
-cd ISOMAC
-
-# Backend setup
-cd backend
-npm install
-cp .env.example .env
-npm start
-
-# Frontend setup (new terminal)
-cd frontend-react
-npm install
-npm run dev
-```
 
 ### Docker Deployment
 
-```bash
-docker build -t isomac .
-docker run -p 7860:7860 isomac
-```
 
----
 
 ## 📚 API Overview
 
@@ -179,28 +139,6 @@ For complete API documentation, see [API_DOCS.md](https://github.com/SachinPal43
 
 ### Environment Variables
 
-```env
-# Database
-MONGO_URI=mongodb://127.0.0.1:27017/isomac_db
-
-# Authentication
-SESSION_SECRET=your-session-secret
-JWT_SECRET=your-jwt-secret
-
-# Server
-PORT=7860
-HOST=0.0.0.0
-CORS_ORIGIN=https://yourdomain.com
-
-# Super Admin
-SUPER_ADMIN_PASSWORD=your-secure-password
-
-# Optional: Google OAuth
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-```
-
----
 
 ## 🤝 Contributing
 

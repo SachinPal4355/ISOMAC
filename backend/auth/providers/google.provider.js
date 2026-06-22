@@ -1,4 +1,4 @@
-﻿/**
+/**
  * google.provider.js — Google OAuth2 Authentication
  *
  * TENANT LINKING RULES:
@@ -73,7 +73,7 @@ async function findOrCreateUser(profile) {
 function buildStrategy() {
   if (!ENABLED) return null;
   return new GoogleStrategy(
-    { clientID: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/auth/google/callback', proxy: true },
+    { clientID: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, callbackURL: process.env.GOOGLE_CALLBACK_URL || '/auth/google/callback', proxy: true },
     async function(_at, _rt, profile, done) { try { return done(null, await findOrCreateUser(profile)); } catch (err) { return done(err, null); } }
   );
 }
